@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,21 @@ import {
   StyleSheet,
   Alert,
   Modal,
-  TouchableHighlight,
   Keyboard,
 } from 'react-native';
-import {useDispatch} from 'react-redux';
-import {editTodo, deleteTodo} from '../store/todoSlice';
+import { useDispatch } from 'react-redux';
+import { updateTodo, removeTodo } from '../store/todoSlice';
 import CustomButton from './CustomButton';
+import { AppDispatch } from '../store/store';
 
 interface TodoItemProps {
-  todo: {id: string; text: string};
+  todo: { id: string; text: string; createdAt: string };
 }
 
-const TodoItem: React.FC<TodoItemProps> = ({todo}) => {
-  const dispatch = useDispatch();
+const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [newText, setNewText] = useState(todo.text);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const prevTodoText = useRef(todo.text); // useRef to store previous todo text
 
   // Update newText state when todo prop changes
   useEffect(() => {
@@ -33,8 +32,9 @@ const TodoItem: React.FC<TodoItemProps> = ({todo}) => {
   };
 
   const handleSave = () => {
+    Keyboard.dismiss();
     if (newText.trim()) {
-      dispatch(editTodo({id: todo.id, text: newText}));
+      dispatch(updateTodo({ id: todo.id, text: newText, createdAt: todo.createdAt }));
       setIsModalVisible(false); // Close the modal after saving
     } else {
       Alert.alert(
@@ -49,21 +49,24 @@ const TodoItem: React.FC<TodoItemProps> = ({todo}) => {
       'Delete Task',
       'Are you sure you want to delete this task?',
       [
-        {text: 'Cancel', style: 'cancel'},
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
-          onPress: () => dispatch(deleteTodo(todo.id)),
+          onPress: () => dispatch(removeTodo(todo.id)),
           style: 'destructive',
         },
       ],
-      {cancelable: true},
+      { cancelable: true },
     );
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        <Text style={styles.text}>{todo.text}</Text>
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>{todo.text}</Text>
+          <Text style={styles.dateText}>Created: {new Date(todo.createdAt).toLocaleDateString()}</Text>
+        </View>
         <View style={styles.buttonContainer}>
           <CustomButton title="Edit" onPress={handleEdit} />
           <CustomButton
@@ -82,7 +85,7 @@ const TodoItem: React.FC<TodoItemProps> = ({todo}) => {
           setIsModalVisible(false);
         }}
         onShow={() => {
-          setNewText(prevTodoText.current); // Set initial text to previous todo text
+          setNewText(newText); // Set initial text to previous todo text
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
@@ -91,14 +94,14 @@ const TodoItem: React.FC<TodoItemProps> = ({todo}) => {
               value={newText}
               onChangeText={setNewText}
               placeholder="Enter updated task"
-              onSubmitEditing={Keyboard.dismiss}
+              onSubmitEditing={handleSave}
             />
             <View style={styles.modalButtonContainer}>
               <CustomButton title="Save" onPress={handleSave} />
               <CustomButton
                 title="Cancel"
                 onPress={() => setIsModalVisible(false)}
-                backgroundColor="gray"
+                backgroundColor="red"
               />
             </View>
           </View>
@@ -120,8 +123,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  textContainer: {
+    flex: 1,
+  },
   text: {
     fontSize: 18,
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#5f79b7',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -157,7 +167,6 @@ const styles = StyleSheet.create({
   },
   modalButtonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     width: '100%',
     marginTop: 20,
   },

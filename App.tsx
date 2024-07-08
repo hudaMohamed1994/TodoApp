@@ -1,36 +1,69 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import TodoList from './src/components/TodoList';
+import React, {useEffect, useState} from 'react';
+import {Provider, useDispatch, useSelector} from 'react-redux';
+import {View, StyleSheet, Text, ActivityIndicator} from 'react-native';
+import store, {RootState} from './src/store/store';
+import {fetchTodos} from './src/store/todoSlice';
 import TodoForm from './src/components/TodoForm';
-import store from './src/store/store';
+import TodoList from './src/components/TodoList';
+import {AppDispatch} from './src/store/store';
 
 const App: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const todos = useSelector((state: RootState) => state.todos.todos); // get todos data
+  const [loading, setLoading] = useState(true); // Loading state
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchTodos());
+        setLoading(false); // Set loading to false on success
+      } catch (error) {
+        console.error('Failed to fetch todos:', error);
+        setLoading(false); // Set loading to false on failure
+      }
+    };
+
+    fetchData();
+  }, [dispatch]);
+
   return (
-    <Provider store={store}>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.container}>
-          <TodoList />
-          <TodoForm />
+    <View style={styles.container}>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
         </View>
-      </SafeAreaView>
-    </Provider>
+      ) : (
+        <>
+          <Text style={styles.title}>Todo App</Text>
+          <TodoForm />
+          <TodoList todos={todos} />
+        </>
+      )}
+    </View>
   );
 };
 
+const AppProvider: React.FC = () => (
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#e4dddd',
-  },
   container: {
     flex: 1,
-    flexDirection: 'column',
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
-export default App;
+export default AppProvider;

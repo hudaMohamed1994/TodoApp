@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch } from './store';
-import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { generateUniqueId } from '../HelperUtils';
 
 interface Todo {
   id: string;
   text: string;
+  createdAt: string;
 }
 
 interface TodoState {
@@ -52,7 +53,7 @@ export const fetchTodos = () => async (dispatch: AppDispatch) => {
 
 export const createTodo = (text: string) => async (dispatch: AppDispatch) => {
   try {
-    const newTodo = { id: uuidv4(), text };
+    const newTodo = { id: generateUniqueId(), text, createdAt: new Date().toISOString() };
     const todosData = await AsyncStorage.getItem('todos');
     const todos = todosData ? JSON.parse(todosData) : [];
     todos.push(newTodo);
