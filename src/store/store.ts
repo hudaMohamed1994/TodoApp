@@ -8,9 +8,6 @@ const store = configureStore({
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
-      serializableCheck: {
-        ignoredPaths: ['todos'],
-      },
       thunk: {
         // thunk as middelware make the asyncronoud opertaions
         extraArgument: {AsyncStorage}, // Pass AsyncStorage as an extra argument to thunks for local presitance
