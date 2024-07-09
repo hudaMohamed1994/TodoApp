@@ -5,7 +5,7 @@ import {RootState} from '../store/store';
 import TodoItem from './TodoItem';
 
 interface TodoListProps {
-  todos?: {id: string; text: string}[];
+  todos?: {id: string; text: string ,createdAt: string }[];
 }
 
 const TodoList: React.FC<TodoListProps> = ({todos}) => {
